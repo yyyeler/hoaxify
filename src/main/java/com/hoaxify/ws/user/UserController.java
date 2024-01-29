@@ -9,8 +9,11 @@ import com.hoaxify.ws.user.dto.UserCreate;
 import com.hoaxify.ws.user.dto.UserDTO;
 import com.hoaxify.ws.user.exception.ActivationNotificationException;
 import com.hoaxify.ws.user.exception.InvalidTokenException;
+import com.hoaxify.ws.user.exception.NotFoundException;
 import com.hoaxify.ws.user.exception.NotUniqueEmailException;
 
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 import java.util.HashMap;
@@ -28,6 +31,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+
 
 
 
@@ -57,6 +61,12 @@ public class UserController {
     {
         return userService.getAllUsers(pageable).map(UserDTO::new);
     }
+
+    @GetMapping("/api/v1/users/{userid}")
+    public UserDTO getUser(@PathVariable long userid) {
+        return new UserDTO(userService.getUser(userid));
+    }
+    
     
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -106,10 +116,21 @@ public class UserController {
     }
 
     @ExceptionHandler(InvalidTokenException.class)
-    ResponseEntity<ApiError> handleInvalidTokenException(InvalidTokenException exception)
+    ResponseEntity<ApiError> handleInvalidTokenException(InvalidTokenException exception, HttpServletRequest request)
     {
         ApiError apiError = new ApiError();
-        apiError.setPath("/api/v1/users");
+        apiError.setPath(request.getRequestURI());
+        apiError.setMessage(exception.getMessage());
+        apiError.setStatus(400);
+
+        return ResponseEntity.status(400).body(apiError);
+    }
+
+    @ExceptionHandler (NotFoundException.class)
+    ResponseEntity<ApiError> handleNotFoundException(NotFoundException exception, HttpServletRequest request)
+    {
+        ApiError apiError = new ApiError();
+        apiError.setPath(request.getRequestURI());
         apiError.setMessage(exception.getMessage());
         apiError.setStatus(400);
 
