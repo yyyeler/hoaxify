@@ -17,7 +17,6 @@ import com.hoaxify.ws.user.exception.InvalidTokenException;
 import com.hoaxify.ws.user.exception.NotFoundException;
 import com.hoaxify.ws.user.exception.NotUniqueEmailException;
 
-import io.micrometer.common.lang.NonNull;
 import jakarta.transaction.Transactional;
 
 @Service
@@ -74,6 +73,10 @@ public class UserService {
     public User getUser(long id)
     {
         return userRepository.findById(id).orElseThrow(() -> new NotFoundException(id));
+    }
+
+    public User findByEmail(String email) {
+       return userRepository.findByEmail(email);
     }
 
 }
