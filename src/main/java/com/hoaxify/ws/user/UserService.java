@@ -12,6 +12,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.hoaxify.ws.email.EmailService;
+import com.hoaxify.ws.user.dto.UserDTO;
+import com.hoaxify.ws.user.dto.UserUpdate;
 import com.hoaxify.ws.user.exception.ActivationNotificationException;
 import com.hoaxify.ws.user.exception.InvalidTokenException;
 import com.hoaxify.ws.user.exception.NotFoundException;
@@ -65,9 +67,12 @@ public class UserService {
         userRepository.save(inDB);
     }
 
-    public Page<User> getAllUsers(Pageable page)
+    public Page<User> getAllUsers(Pageable page, User loggedInUser)
     {
-        return userRepository.findAll(page);
+        if(loggedInUser == null)
+            return userRepository.findAll(page);
+        else 
+            return userRepository.findByIdNot(loggedInUser.getId(), page);
     }
 
     public User getUser(long id)
@@ -77,6 +82,15 @@ public class UserService {
 
     public User findByEmail(String email) {
        return userRepository.findByEmail(email);
+    }
+
+    public User updateUser(long id, UserUpdate userUpdate) {
+
+        User inDB = getUser(id);
+
+        inDB.setUsername(userUpdate.username());
+
+        return userRepository.save(inDB);
     }
 
 }
