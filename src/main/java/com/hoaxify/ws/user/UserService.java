@@ -7,12 +7,11 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.mail.MailException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.hoaxify.ws.configuration.CurrentUser;
 import com.hoaxify.ws.email.EmailService;
-import com.hoaxify.ws.user.dto.UserDTO;
 import com.hoaxify.ws.user.dto.UserUpdate;
 import com.hoaxify.ws.user.exception.ActivationNotificationException;
 import com.hoaxify.ws.user.exception.InvalidTokenException;
@@ -30,7 +29,8 @@ public class UserService {
     @Autowired
     EmailService emailService;
 
-    PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    @Autowired
+    PasswordEncoder passwordEncoder;
 
     @Transactional(rollbackOn = MailException.class)
     public void save(User user)
@@ -67,12 +67,12 @@ public class UserService {
         userRepository.save(inDB);
     }
 
-    public Page<User> getAllUsers(Pageable page, User loggedInUser)
+    public Page<User> getAllUsers(Pageable page, CurrentUser currentUser)
     {
-        if(loggedInUser == null)
+        if(currentUser == null)
             return userRepository.findAll(page);
         else 
-            return userRepository.findByIdNot(loggedInUser.getId(), page);
+            return userRepository.findByIdNot(currentUser.getId(), page);
     }
 
     public User getUser(long id)
